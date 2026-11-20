@@ -10,9 +10,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
-
       - uses: nuget/setup-nuget@v2
-
       - uses: microsoft/setup-msbuild@v2
         with:
           msbuild-architecture: x64
@@ -26,8 +24,10 @@ jobs:
           msbuild rdpWrapper.sln /t:restore /p:RestorePackagesConfig=true /p:Configuration=Release /p:Platform="Any CPU"
           msbuild rdpWrapper.sln /t:Rebuild /p:DebugType=None /p:Configuration=Release /p:Platform="Any CPU"
           msbuild rdpWrapper.sln /t:Rebuild /p:DebugType=None /p:Configuration=ReleaseLite /p:Platform="Any CPU"
+          msbuild rdpWrapper.sln /t:restore /p:RestorePackagesConfig=true /p:Configuration=Release /p:Platform="x64"
           msbuild rdpWrapper.sln /t:Rebuild /p:DebugType=None /p:Configuration=Release /p:Platform="x64"
           msbuild rdpWrapper.sln /t:Rebuild /p:DebugType=None /p:Configuration=ReleaseLite /p:Platform="x64"
+          msbuild rdpWrapper.sln /t:restore /p:RestorePackagesConfig=true /p:Configuration=Release /p:Platform="x86"
           msbuild rdpWrapper.sln /t:Rebuild /p:DebugType=None /p:Configuration=Release /p:Platform="x86"
           msbuild rdpWrapper.sln /t:Rebuild /p:DebugType=None /p:Configuration=ReleaseLite /p:Platform="x86"
 
@@ -36,18 +36,10 @@ jobs:
         run: Get-ChildItem -Recurse rdpWrapper/bin -Filter *.exe | Select-Object FullName, Length
 
       - name: Upload artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: rdpWrapper
           path: rdpWrapper/bin/**/*.exe
-          if-no-files-found: error
-          retention-days: 30
-
-      - name: Upload obfuscated artifacts
-        if: hashFiles('rdpWrapper/bin/Obfuscated/*.exe') != ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: rdpWrapper-obfuscated
-          path: rdpWrapper/bin/Obfuscated/*.exe
-          if-no-files-found: ignore
+          if-no-files-found: warn
           retention-days: 30
